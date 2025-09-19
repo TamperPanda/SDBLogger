@@ -11,6 +11,8 @@
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // @grant        GM_download
+// @updateURL    https://raw.githubusercontent.com/TamperPanda/SDBLogger/main/SDBLogger.user.js
+// @downloadURL  https://raw.githubusercontent.com/TamperPanda/SDBLogger/main/SDBLogger.user.js
 // @connect      itemdb.com.br
 // @connect      www.neopets.com
 // ==/UserScript==
