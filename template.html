@@ -1,0 +1,610 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>SDB Export - Consolidated</title>
+    <style>
+      :root {
+        --bg-primary: #f6fbff;
+        --bg-secondary: white;
+        --bg-tertiary: #f8f9fa;
+        --text-primary: #333;
+        --text-secondary: #3a6ea5;
+        --border-color: #ddd;
+        --table-header-bg: #3a6ea5;
+        --table-header-text: white;
+        --table-row-even: #f8f9fa;
+        --table-row-odd: #ffffff;
+        --table-row-hover: #e9ecef;
+        --stats-bg: #e8f4fc;
+        --stats-border: #3a6ea5;
+        --button-bg: #3a6ea5;
+        --button-hover: #2c5282;
+        --input-bg: white;
+        --input-border: #ccc;
+        --input-text: #333;
+      }
+
+      .remove-btn {
+        height: 28px !important;
+        padding: 4px 12px !important;
+        font-size: 12px !important;
+        line-height: 1 !important;
+      }
+
+      .remove-column>div {
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+      }
+
+      .remove-column .quantity-input {
+        -moz-appearance: textfield;
+        width: 40px !important;
+        min-width: 40px !important;
+        max-width: 40px !important;
+      }
+
+      .container h2 {
+        box-sizing: border-box !important;
+      }
+
+      .remove-column {
+        min-width: 60px !important;
+      }
+
+      .dark-mode {
+        --bg-primary: #121212;
+        --bg-secondary: #1e1e1e;
+        --bg-tertiary: #2d2d2d;
+        --text-primary: #e0e0e0;
+        --text-secondary: #a0a0a0;
+        --border-color: #404040;
+        --table-header-bg: #333333;
+        --table-header-text: #ffffff;
+        --table-row-even: #2a2a2a;
+        --table-row-odd: #1e1e1e;
+        --table-row-hover: #3a3a3a;
+        --stats-bg: #2d2d2d;
+        --stats-border: #555555;
+        --button-bg: #555555;
+        --button-hover: #666666;
+        --input-bg: #2d2d2d;
+        --input-border: #555555;
+        --input-text: #e0e0e0;
+        scrollbar-color: #555555 #2d2d2d;
+        scrollbar-width: thin;
+      }
+
+      .dark-mode .remove-btn {
+        background: rgba(139, 0, 0, 0.3) !important;
+        border: 1px solid rgba(139, 0, 0, 0.5) !important;
+      }
+
+      .dark-mode ::-webkit-scrollbar {
+        width: 12px;
+      }
+
+      .dark-mode ::-webkit-scrollbar-track {
+        background: #2d2d2d;
+        border-radius: 6px;
+      }
+
+      .dark-mode ::-webkit-scrollbar-thumb {
+        background: #555555;
+        border-radius: 6px;
+        border: 2px solid #2d2d2d;
+      }
+
+      .dark-mode ::-webkit-scrollbar-thumb:hover {
+        background: #666666;
+      }
+
+      body {
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        margin: 20px;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--bg-secondary);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .table-container {
+        position: relative;
+      }
+
+      #sdb-table thead th {
+        top: -1px !important;
+      }
+
+      h2 {
+        color: var(--text-secondary);
+        margin-top: 0;
+        padding: 15px 30px;
+        text-align: center;
+        font-size: 2em;
+        font-weight: 600;
+        font-family: 'Inter', 'SF Pro Display', -apple-system, sans-serif;
+        background: var(--bg-tertiary);
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: block;
+        width: 100%;
+        margin: 0 auto 20px auto;
+      }
+
+      .container {
+        text-align: center;
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--bg-secondary);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .container>*:not(h2) {
+        text-align: left;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 15px 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      th,
+      td {
+        border: 1px solid var(--border-color);
+        padding: 10px;
+        text-align: left;
+        font-size: 14px;
+      }
+
+      th {
+        background: var(--table-header-bg);
+        color: var(--table-header-text);
+        font-weight: bold;
+        padding: 12px 10px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      tr:nth-child(even) {
+        background-color: var(--table-row-even);
+      }
+
+      tr:nth-child(odd) {
+        background-color: var(--table-row-odd);
+      }
+
+      tbody tr td:nth-child(2) {
+        font-weight: bold;
+      }
+
+      tr:hover {
+        background-color: var(--table-row-hover);
+      }
+
+      img {
+        max-width: 60px;
+        max-height: 60px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+      }
+
+      .link-icon {
+        width: 30px;
+        height: 30px;
+        margin: 0 2px;
+        vertical-align: middle;
+        border: 1px solid var(--border-color);
+        border-radius: 3px;
+      }
+
+      .controls {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+      }
+
+      button {
+        background: var(--button-bg);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 8px;
+        font-size: 14px;
+      }
+
+      button:hover {
+        background: var(--button-hover);
+      }
+
+      select,
+      input[type="number"],
+      input[type="checkbox"],
+      input[type="text"] {
+        padding: 6px;
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        margin: 0 8px;
+        background: var(--input-bg);
+        color: var(--input-text);
+      }
+
+      label {
+        margin-right: 15px;
+        font-size: 14px;
+      }
+
+      .stats {
+        background: var(--stats-bg);
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+        font-size: 14px;
+        border-left: 4px solid var(--stats-border);
+      }
+
+      .table-container {
+        max-height: 70vh;
+        overflow: auto;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+      }
+
+      .sort-order {
+        display: inline-block;
+        margin-left: 8px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      .search-container {
+        margin: 10px 0;
+      }
+
+      .dark-mode-toggle {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: var(--button-bg);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        z-index: 1000;
+      }
+
+      .dark-mode-toggle:hover {
+        background: var(--button-hover);
+      }
+    </style>
+  </head>
+  <body><button class="dark-mode-toggle" id="dark-mode-toggle">🌙</button>
+    <div class="container">
+      <h2>SDB Report</h2>
+      <div class="controls"><button id="download-csv">Download CSV</button><button id="download-html">Download HTML Source</button><button id="copy-clip">Copy CSV to Clipboard</button>
+        <div style="margin-top: 10px;"><label> Show NC items <input type="checkbox" id="show-nc" checked /></label><label> Min rarity <input type="number" id="min-rarity" style="width:70px" /></label><label> Max rarity <input type="number" id="max-rarity" style="width:70px" /></label><label> Sort by: <select id="sort-by">
+              <option value="value">Value</option>
+              <option value="name">Name</option>
+              <option value="qty">Qty</option>
+              <option value="stackValue">Stack value</option>
+              <option value="rarity">Rarity</option>
+              <option value="id">Item id</option>
+            </select><span id="sort-order" class="sort-order" title="Toggle sort order">⬇️</span></label></div>
+        <div class="search-container"><label>Search: <input type="text" id="search-text" placeholder="Type to filter items..." style="width: 250px;" /></label></div><label> Filter by type: <select id="filter-type" style="width: 120px;">
+            <option value="">All types</option>
+          </select></label>
+      </div>
+      <div style="font-size: 12px; color: var(--text-secondary); margin-top: 10px; text-align: center;"> Item data from <a href="https://itemdb.com.br" target="_blank" style="color: var(--text-secondary);">ItemDB</a> • NC values from <a href="https://stylisher.club/" target="_blank" style="color: var(--text-secondary);">Lebron Values</a></div>
+      <div id="stats" class="stats"></div>
+      <div class="table-container">
+        <table id="sdb-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Qty</th>
+              <th>Rarity</th>
+              <th>Value</th>
+              <th>Stack Value</th>
+              <th>ItemID</th>
+              <th>Remove</th>
+              <th>Links</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <script>
+      function removeItems(itemId, quantity) {
+        if (!itemId || !quantity || quantity < 1) {
+          alert('Please enter a valid quantity');
+          return;
+        }
+        const inputElement = document.querySelector('[data-item-id="' + itemId + '"]');
+        if (!inputElement) {
+          alert('Item not found');
+          return;
+        }
+        if (quantity > parseInt(inputElement.max)) {
+          alert('Cannot remove more items than you have');
+          return;
+        }
+        try {
+          if (typeof GM_setValue !== 'undefined') {
+            const removed = JSON.parse(GM_getValue('sdb_removed_items', '{}'));
+            if (removed[itemId]) {
+              removed[itemId] += quantity;
+            } else {
+              removed[itemId] = quantity;
+            }
+            GM_setValue('sdb_removed_items', JSON.stringify(removed));
+          } else {
+            window.opener?.postMessage({
+              type: 'itemRemoved',
+              itemId: itemId,
+              quantity: quantity
+            }, '*');
+          }
+        } catch (e) {
+          console.warn('Could not save removal to storage:', e);
+        }
+        const formData = new URLSearchParams();
+        formData.append('checksub', 'scan');
+        formData.append('back_to_inv[' + itemId + ']', quantity.toString());
+        formData.append('obj_name', '');
+        formData.append('category', '0');
+        formData.append('offset', '0');
+        fetch('https://www.neopets.com/process_safetydeposit.phtml?checksub=scan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formData,
+          credentials: 'include'
+        }).then(response => response.text()).then(data => {
+          if (data.includes('')) {
+            const currentQtyElem = inputElement.closest('tr').querySelector('td:nth-child(4)');
+            const newQty = parseInt(currentQtyElem.textContent.replace(/,/g, '')) - quantity;
+            if (newQty <= 0) {
+              const row = inputElement.closest('tr');
+              row.style.transition = 'opacity 0.3s';
+              row.style.opacity = 0;
+              setTimeout(() => row.remove(), 300);
+            } else {
+              currentQtyElem.textContent = new Intl.NumberFormat().format(newQty);
+              inputElement.max = newQty;
+              inputElement.value = Math.min(quantity, newQty);
+              const valueElem = inputElement.closest('tr').querySelector('td:nth-child(6)');
+              const itemValue = parseInt(valueElem.textContent.replace(/,/g, '')) || 0;
+              const stackValueElem = inputElement.closest('tr').querySelector('td:nth-child(7)');
+              stackValueElem.textContent = new Intl.NumberFormat().format(newQty * itemValue);
+            }
+            try {
+              window.opener?.GM_setValue?.('sdb_removed_items_updated', Date.now().toString());
+            } catch (e) {
+              console.log('Cross-origin storage update not available');
+            }
+          } else {
+            alert('Error removing items. Please check the Neopets page.');
+          }
+        }).catch(error => {
+          console.error('Error:', error);
+          alert('Error removing items: ' + error.message);
+        });
+      }
+      window.addEventListener('message', function(event) {
+        if (event.data.type === 'itemRemoved') {
+          console.log('Item removed from blob:', event.data);
+        }
+      });
+      const darkModeToggle = document.getElementById('dark-mode-toggle');
+      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+      const savedTheme = localStorage.getItem('sdb-theme');
+      const currentTheme = savedTheme || (prefersDarkScheme.matches ? 'dark' : 'light');
+      if (currentTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        darkModeToggle.textContent = '☀️';
+      }
+      darkModeToggle.addEventListener('click', () => {
+        const isDarkMode = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('sdb-theme', isDarkMode ? 'dark' : 'light');
+        darkModeToggle.textContent = isDarkMode ? '☀️' : '🌙';
+      });
+      prefersDarkScheme.addEventListener('change', e => {
+        if (!localStorage.getItem('sdb-theme')) {
+          if (e.matches) {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.textContent = '☀️';
+          } else {
+            document.body.classList.remove('dark-mode');
+            darkModeToggle.textContent = '🌙';
+          }
+        }
+      });
+      const data = {
+        {
+          SDB_DATA
+        }
+      };
+      const $ = sel => document.querySelector(sel);
+      const tbody = document.querySelector('#sdb-table tbody');
+      const stats = document.getElementById('stats');
+      let sortAscending = false;
+      let currentSortBy = 'value';
+      let currentSearchTerm = '';
+
+      function populateTypeFilter() {
+        const typeSelect = document.getElementById('filter-type');
+        const types = [...new Set(data.map(item => item.type).filter(Boolean))].sort();
+        while (typeSelect.options.length > 1) {
+          typeSelect.remove(1);
+        }
+        types.forEach(type => {
+          const option = document.createElement('option');
+          option.value = type;
+          option.textContent = type;
+          typeSelect.appendChild(option);
+        });
+      }
+
+      function formatNumberWithCommas(num) {
+        return num.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ",");
+      }
+
+      function render() {
+        const showNC = document.getElementById('show-nc').checked;
+        const minR = parseInt(document.getElementById('min-rarity').value) || -Infinity;
+        const maxR = parseInt(document.getElementById('max-rarity').value) || Infinity;
+        const searchTerm = document.getElementById('search-text').value.toLowerCase();
+        const filterType = document.getElementById('filter-type').value;
+        currentSearchTerm = searchTerm;
+        currentSortBy = document.getElementById('sort-by').value;
+        let list = data.filter(d => showNC || !d.isNC).filter(d => (d.rarity === null) ? true : (d.rarity >= minR)).filter(d => (d.rarity === null) ? true : (d.rarity <= maxR)).filter(d => d.name && d.name.toLowerCase().includes(searchTerm)).filter(d => !filterType || d.type === filterType);
+        list.forEach(it => {
+          if (!it.isNC && it.value && !isNaN(Number(it.value))) {
+            it.stackValue = (it.qty || 0) * Number(it.value);
+          } else {
+            it.stackValue = 0;
+          }
+        });
+        if (currentSortBy === 'name') {
+          list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        } else if (currentSortBy === 'qty') {
+          list.sort((a, b) => (b.qty || 0) - (a.qty || 0));
+        } else if (currentSortBy === 'value') {
+          list.sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
+        } else if (currentSortBy === 'stackValue') {
+          list.sort((a, b) => (Number(b.stackValue) || 0) - (Number(a.stackValue) || 0));
+        } else if (currentSortBy === 'rarity') {
+          list.sort((a, b) => (Number(b.rarity) || 0) - (Number(a.rarity) || 0));
+        } else if (currentSortBy === 'id') {
+          list.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
+        }
+        if (sortAscending) {
+          list.reverse();
+        }
+        tbody.innerHTML = '';
+        list.forEach(it => {
+          const tr = document.createElement('tr');
+          const itemNameForItemDB = encodeURIComponent(it.name || '').toLowerCase().replace(/%20/g, '-').replace(/%[0-9A-F]{2}/g, '');
+          const itemNameForJellyNeo = encodeURIComponent(it.name || '').replace(/%20/g, '+');
+          const itemNameForSDB = encodeURIComponent(it.name || '').replace(/%20/g, '+');
+          const removeHtml = '<div style="display: flex; align-items: center; justify-content: center;">' + '<input type="number" class="quantity-input" data-item-id="' + it.id + '" value="1" min="1" max="' + (it.qty || 0) + '" style="margin-right: 5px;">' + '<button class="remove-btn" onclick="removeItems(\\'
+          ' + it.id + '\
+          ', this.previousElementSibling.value)">–</button>' + '</div>';
+          const linksHtml = '<a href="https://itemdb.com.br/item/' + itemNameForItemDB + '" target="_blank" title="View on ItemDB">' + '<img src="https://i.imgur.com/vgp1HHw.png" alt="ItemDB" class="link-icon">' + '</a>' + '<a href="https://items.jellyneo.net/search/?name=' + itemNameForJellyNeo + '&name_type=3" target="_blank" title="Search on Jellyneo">' + '<img src="https://i.imgur.com/TrJp26O.png" alt="Jellyneo" class="link-icon">' + '</a>' + '<a href="https://www.neopets.com/safetydeposit.phtml?obj_name=' + itemNameForSDB + '&category=0" target="_blank" title="Search in SDB">' + '<img src="https://i.imgur.com/8X7djHT.png" alt="SDB" class="link-icon">' + '</a>';
+          tr.innerHTML = '<td>' + (it.image ? '<img src="' + escapeHtml(it.image) + '" />' : '') + '</td>' + '<td>' + escapeHtml(it.name || '') + '</td>' + '<td>' + escapeHtml(it.type || '') + '</td>' + '<td>' + formatNumberWithCommas(it.qty || 0) + '</td>' + '<td>' + (it.rarity !== null && it.rarity !== undefined ? escapeHtml(it.rarity.toString()) : '-') + '</td>' + '<td>' + (it.value !== null && it.value !== undefined ? formatNumberWithCommas(it.value) : '-') + '</td>' + '<td>' + ((it.stackValue && !isNaN(it.stackValue)) ? formatNumberWithCommas(it.stackValue) : '-') + '</td>' + '<td>' + (it.id || '') + '</td>' + '<td class="remove-column">' + removeHtml + '</td>' + '<td style="white-space: nowrap;">' + linksHtml + '</td>';
+          tbody.appendChild(tr);
+        });
+        const totalValue = list.reduce((s, x) => s + ((Number(x.stackValue) || 0)), 0);
+        const totalQty = list.reduce((s, x) => s + (Number(x.qty) || 0), 0);
+        stats.textContent = 'Items shown: ' + list.length + ' | Total qty: ' + formatNumberWithCommas(totalQty) + ' | Est total value: ' + formatNumberWithCommas(totalValue);
+      }
+
+      function escapeHtml(s) {
+        return s ? s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;') : '';
+      }
+      document.getElementById('show-nc').addEventListener('change', render);
+      document.getElementById('min-rarity').addEventListener('input', render);
+      document.getElementById('max-rarity').addEventListener('input', render);
+      document.getElementById('search-text').addEventListener('input', render);
+      document.getElementById('sort-by').addEventListener('change', render);
+      document.getElementById('sort-order').addEventListener('click', () => {
+        sortAscending = !sortAscending;
+        document.getElementById('sort-order').textContent = sortAscending ? '⬆️' : '⬇️';
+        render();
+      });
+      document.getElementById('filter-type').addEventListener('change', render);
+      document.getElementById('download-csv').addEventListener('click', () => {
+        const csv = toCSV(data);
+        downloadBlob(csv, 'sdb_export.csv', 'text/csv;charset=utf-8;');
+      });
+      document.getElementById('download-html').addEventListener('click', () => {
+        const html = document.documentElement.outerHTML;
+        downloadBlob(html, 'sdb_export.html', 'text/html;charset=utf-8;');
+      });
+      document.getElementById('copy-clip').addEventListener('click', () => {
+        navigator.clipboard.writeText(toCSV(data)).then(() => alert('CSV copied to clipboard'));
+      });
+
+      function toCSV(list) {
+        const showNC = document.getElementById('show-nc').checked;
+        const minR = parseInt(document.getElementById('min-rarity').value) || -Infinity;
+        const maxR = parseInt(document.getElementById('max-rarity').value) || Infinity;
+        const searchTerm = currentSearchTerm;
+        const filterType = document.getElementById('filter-type').value;
+        let filteredList = list.filter(d => showNC || !d.isNC).filter(d => (d.rarity === null) ? true : (d.rarity >= minR)).filter(d => (d.rarity === null) ? true : (d.rarity <= maxR)).filter(d => d.name && d.name.toLowerCase().includes(searchTerm)).filter(d => !filterType || d.type === filterType);
+        filteredList.forEach(it => {
+          it.stackValue = (it.qty || 0) * (Number(it.value) || 0);
+        });
+        if (currentSortBy === 'name') {
+          filteredList.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        } else if (currentSortBy === 'qty') {
+          filteredList.sort((a, b) => (b.qty || 0) - (a.qty || 0));
+        } else if (currentSortBy === 'value') {
+          filteredList.sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
+        } else if (currentSortBy === 'stackValue') {
+          filteredList.sort((a, b) => (Number(b.stackValue) || 0) - (Number(a.stackValue) || 0));
+        } else if (currentSortBy === 'rarity') {
+          filteredList.sort((a, b) => (Number(b.rarity) || 0) - (Number(a.rarity) || 0));
+        } else if (currentSortBy === 'id') {
+          filteredList.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
+        }
+        if (sortAscending) {
+          filteredList.reverse();
+        }
+        const header = ['name', 'type', 'qty', 'rarity', 'value', 'stackValue', 'id'];
+        const rows = [header.join(',')];
+        filteredList.forEach(it => {
+          const r = ['"' + (it.name || '').replace(/"/g, '""') + '"', '"' + (it.type || '').replace(/"/g, '""') + '"',
+            (it.qty || 0),
+            (it.rarity === null ? '' : it.rarity),
+            (it.value === null ? '' : it.value),
+            ((it.qty || 0) * (Number(it.value) || 0)),
+            (it.id || '')
+          ];
+          rows.push(r.join(','));
+        });
+        return rows.join('\n');
+      }
+
+      function downloadBlob(content, filename, mime) {
+        const blob = new Blob([content], {
+          type: mime
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+      populateTypeFilter();
+      render();
+    </script>
+  </body>
+</html>
