@@ -336,275 +336,282 @@
         </table>
       </div>
     </div>
-    <script>
-      function removeItems(itemId, quantity) {
-        if (!itemId || !quantity || quantity < 1) {
-          alert('Please enter a valid quantity');
-          return;
-        }
-        const inputElement = document.querySelector('[data-item-id="' + itemId + '"]');
-        if (!inputElement) {
-          alert('Item not found');
-          return;
-        }
-        if (quantity > parseInt(inputElement.max)) {
-          alert('Cannot remove more items than you have');
-          return;
+<script>
+  function removeItems(itemId, quantity) {
+    if (!itemId || !quantity || quantity < 1) {
+      alert('Please enter a valid quantity');
+      return;
+    }
+    const inputElement = document.querySelector('[data-item-id="' + itemId + '"]');
+    if (!inputElement) {
+      alert('Item not found');
+      return;
+    }
+    if (quantity > parseInt(inputElement.max)) {
+      alert('Cannot remove more items than you have');
+      return;
+    }
+
+    try {
+      const removed = JSON.parse(localStorage.getItem('sdb_removed_items') || '{}');
+      removed[itemId] = (removed[itemId] || 0) + quantity;
+      localStorage.setItem('sdb_removed_items', JSON.stringify(removed));
+    } catch (e) {}
+
+    const formData = new URLSearchParams();
+    formData.append('checksub', 'scan');
+    formData.append('back_to_inv[' + itemId + ']', quantity.toString());
+    formData.append('obj_name', '');
+    formData.append('category', '0');
+    formData.append('offset', '0');
+
+    fetch('https://www.neopets.com/process_safetydeposit.phtml?checksub=scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData,
+      credentials: 'include'
+    }).then(response => response.text()).then(data => {
+      if (data.includes('')) {
+        const currentQtyElem = inputElement.closest('tr').querySelector('td:nth-child(4)');
+        const newQty = parseInt(currentQtyElem.textContent.replace(/,/g, '')) - quantity;
+        if (newQty <= 0) {
+          const row = inputElement.closest('tr');
+          row.style.transition = 'opacity 0.3s';
+          row.style.opacity = 0;
+          setTimeout(() => row.remove(), 300);
+        } else {
+          currentQtyElem.textContent = new Intl.NumberFormat().format(newQty);
+          inputElement.max = newQty;
+          inputElement.value = Math.min(quantity, newQty);
+          const valueElem = inputElement.closest('tr').querySelector('td:nth-child(6)');
+          const itemValue = parseInt(valueElem.textContent.replace(/,/g, '')) || 0;
+          const stackValueElem = inputElement.closest('tr').querySelector('td:nth-child(7)');
+          stackValueElem.textContent = new Intl.NumberFormat().format(newQty * itemValue);
         }
         try {
-          if (typeof GM_setValue !== 'undefined') {
-            const removed = JSON.parse(GM_getValue('sdb_removed_items', '{}'));
-            if (removed[itemId]) {
-              removed[itemId] += quantity;
-            } else {
-              removed[itemId] = quantity;
-            }
-            GM_setValue('sdb_removed_items', JSON.stringify(removed));
-          } else {
-            window.opener?.postMessage({
-              type: 'itemRemoved',
-              itemId: itemId,
-              quantity: quantity
-            }, '*');
-          }
-        } catch (e) {
-          console.warn('Could not save removal to storage:', e);
-        }
-        const formData = new URLSearchParams();
-        formData.append('checksub', 'scan');
-        formData.append('back_to_inv[' + itemId + ']', quantity.toString());
-        formData.append('obj_name', '');
-        formData.append('category', '0');
-        formData.append('offset', '0');
-        fetch('https://www.neopets.com/process_safetydeposit.phtml?checksub=scan', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: formData,
-          credentials: 'include'
-        }).then(response => response.text()).then(data => {
-          if (data.includes('')) {
-            const currentQtyElem = inputElement.closest('tr').querySelector('td:nth-child(4)');
-            const newQty = parseInt(currentQtyElem.textContent.replace(/,/g, '')) - quantity;
-            if (newQty <= 0) {
-              const row = inputElement.closest('tr');
-              row.style.transition = 'opacity 0.3s';
-              row.style.opacity = 0;
-              setTimeout(() => row.remove(), 300);
-            } else {
-              currentQtyElem.textContent = new Intl.NumberFormat().format(newQty);
-              inputElement.max = newQty;
-              inputElement.value = Math.min(quantity, newQty);
-              const valueElem = inputElement.closest('tr').querySelector('td:nth-child(6)');
-              const itemValue = parseInt(valueElem.textContent.replace(/,/g, '')) || 0;
-              const stackValueElem = inputElement.closest('tr').querySelector('td:nth-child(7)');
-              stackValueElem.textContent = new Intl.NumberFormat().format(newQty * itemValue);
-            }
-            try {
-              window.opener?.GM_setValue?.('sdb_removed_items_updated', Date.now().toString());
-            } catch (e) {
-              console.log('Cross-origin storage update not available');
-            }
-          } else {
-            alert('Error removing items. Please check the Neopets page.');
-          }
-        }).catch(error => {
-          console.error('Error:', error);
-          alert('Error removing items: ' + error.message);
-        });
+          window.opener?.GM_setValue?.('sdb_removed_items_updated', Date.now().toString());
+        } catch (e) {}
+      } else {
+        alert('Error removing items. Please check the Neopets page.');
       }
-      window.addEventListener('message', function(event) {
-        if (event.data.type === 'itemRemoved') {
-          console.log('Item removed from blob:', event.data);
-        }
-      });
-      const darkModeToggle = document.getElementById('dark-mode-toggle');
-      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-      const savedTheme = localStorage.getItem('sdb-theme');
-      const currentTheme = savedTheme || (prefersDarkScheme.matches ? 'dark' : 'light');
-      if (currentTheme === 'dark') {
+    }).catch(error => {
+      alert('Error removing items: ' + error.message);
+    });
+  }
+
+  window.addEventListener('message', function(event) {
+    if (event.data.type === 'itemRemoved') {}
+  });
+
+  const darkModeToggle = document.getElementById('dark-mode-toggle');
+  const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+  const savedTheme = localStorage.getItem('sdb-theme');
+  const currentTheme = savedTheme || (prefersDarkScheme.matches ? 'dark' : 'light');
+  if (currentTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    darkModeToggle.textContent = '☀️';
+  }
+  darkModeToggle.addEventListener('click', () => {
+    const isDarkMode = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('sdb-theme', isDarkMode ? 'dark' : 'light');
+    darkModeToggle.textContent = isDarkMode ? '☀️' : '🌙';
+  });
+  prefersDarkScheme.addEventListener('change', e => {
+    if (!localStorage.getItem('sdb-theme')) {
+      if (e.matches) {
         document.body.classList.add('dark-mode');
         darkModeToggle.textContent = '☀️';
+      } else {
+        document.body.classList.remove('dark-mode');
+        darkModeToggle.textContent = '🌙';
       }
-      darkModeToggle.addEventListener('click', () => {
-        const isDarkMode = document.body.classList.toggle('dark-mode');
-        localStorage.setItem('sdb-theme', isDarkMode ? 'dark' : 'light');
-        darkModeToggle.textContent = isDarkMode ? '☀️' : '🌙';
-      });
-      prefersDarkScheme.addEventListener('change', e => {
-        if (!localStorage.getItem('sdb-theme')) {
-          if (e.matches) {
-            document.body.classList.add('dark-mode');
-            darkModeToggle.textContent = '☀️';
-          } else {
-            document.body.classList.remove('dark-mode');
-            darkModeToggle.textContent = '🌙';
-          }
-        }
-      });
-      const data = {
-        {
-          SDB_DATA
-        }
-      };
-      const $ = sel => document.querySelector(sel);
-      const tbody = document.querySelector('#sdb-table tbody');
-      const stats = document.getElementById('stats');
-      let sortAscending = false;
-      let currentSortBy = 'value';
-      let currentSearchTerm = '';
+    }
+  });
 
-      function populateTypeFilter() {
-        const typeSelect = document.getElementById('filter-type');
-        const types = [...new Set(data.map(item => item.type).filter(Boolean))].sort();
-        while (typeSelect.options.length > 1) {
-          typeSelect.remove(1);
-        }
-        types.forEach(type => {
-          const option = document.createElement('option');
-          option.value = type;
-          option.textContent = type;
-          typeSelect.appendChild(option);
-        });
-      }
+window.data = {{SDB_DATA}};
 
-      function formatNumberWithCommas(num) {
-        return num.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ",");
-      }
+  const $ = sel => document.querySelector(sel);
+  const tbody = document.querySelector('#sdb-table tbody');
+  const stats = document.getElementById('stats');
+  let sortAscending = false;
+  let currentSortBy = 'value';
+  let currentSearchTerm = '';
 
-      function render() {
-        const showNC = document.getElementById('show-nc').checked;
-        const minR = parseInt(document.getElementById('min-rarity').value) || -Infinity;
-        const maxR = parseInt(document.getElementById('max-rarity').value) || Infinity;
-        const searchTerm = document.getElementById('search-text').value.toLowerCase();
-        const filterType = document.getElementById('filter-type').value;
-        currentSearchTerm = searchTerm;
-        currentSortBy = document.getElementById('sort-by').value;
-        let list = data.filter(d => showNC || !d.isNC).filter(d => (d.rarity === null) ? true : (d.rarity >= minR)).filter(d => (d.rarity === null) ? true : (d.rarity <= maxR)).filter(d => d.name && d.name.toLowerCase().includes(searchTerm)).filter(d => !filterType || d.type === filterType);
-        list.forEach(it => {
-          if (!it.isNC && it.value && !isNaN(Number(it.value))) {
-            it.stackValue = (it.qty || 0) * Number(it.value);
-          } else {
-            it.stackValue = 0;
-          }
-        });
-        if (currentSortBy === 'name') {
-          list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-        } else if (currentSortBy === 'qty') {
-          list.sort((a, b) => (b.qty || 0) - (a.qty || 0));
-        } else if (currentSortBy === 'value') {
-          list.sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
-        } else if (currentSortBy === 'stackValue') {
-          list.sort((a, b) => (Number(b.stackValue) || 0) - (Number(a.stackValue) || 0));
-        } else if (currentSortBy === 'rarity') {
-          list.sort((a, b) => (Number(b.rarity) || 0) - (Number(a.rarity) || 0));
-        } else if (currentSortBy === 'id') {
-          list.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
-        }
-        if (sortAscending) {
-          list.reverse();
-        }
-        tbody.innerHTML = '';
-        list.forEach(it => {
-          const tr = document.createElement('tr');
-          const itemNameForItemDB = encodeURIComponent(it.name || '').toLowerCase().replace(/%20/g, '-').replace(/%[0-9A-F]{2}/g, '');
-          const itemNameForJellyNeo = encodeURIComponent(it.name || '').replace(/%20/g, '+');
-          const itemNameForSDB = encodeURIComponent(it.name || '').replace(/%20/g, '+');
-          const removeHtml = '<div style="display: flex; align-items: center; justify-content: center;">' + '<input type="number" class="quantity-input" data-item-id="' + it.id + '" value="1" min="1" max="' + (it.qty || 0) + '" style="margin-right: 5px;">' + '<button class="remove-btn" onclick="removeItems(\\'
-          ' + it.id + '\
-          ', this.previousElementSibling.value)">–</button>' + '</div>';
-          const linksHtml = '<a href="https://itemdb.com.br/item/' + itemNameForItemDB + '" target="_blank" title="View on ItemDB">' + '<img src="https://i.imgur.com/vgp1HHw.png" alt="ItemDB" class="link-icon">' + '</a>' + '<a href="https://items.jellyneo.net/search/?name=' + itemNameForJellyNeo + '&name_type=3" target="_blank" title="Search on Jellyneo">' + '<img src="https://i.imgur.com/TrJp26O.png" alt="Jellyneo" class="link-icon">' + '</a>' + '<a href="https://www.neopets.com/safetydeposit.phtml?obj_name=' + itemNameForSDB + '&category=0" target="_blank" title="Search in SDB">' + '<img src="https://i.imgur.com/8X7djHT.png" alt="SDB" class="link-icon">' + '</a>';
-          tr.innerHTML = '<td>' + (it.image ? '<img src="' + escapeHtml(it.image) + '" />' : '') + '</td>' + '<td>' + escapeHtml(it.name || '') + '</td>' + '<td>' + escapeHtml(it.type || '') + '</td>' + '<td>' + formatNumberWithCommas(it.qty || 0) + '</td>' + '<td>' + (it.rarity !== null && it.rarity !== undefined ? escapeHtml(it.rarity.toString()) : '-') + '</td>' + '<td>' + (it.value !== null && it.value !== undefined ? formatNumberWithCommas(it.value) : '-') + '</td>' + '<td>' + ((it.stackValue && !isNaN(it.stackValue)) ? formatNumberWithCommas(it.stackValue) : '-') + '</td>' + '<td>' + (it.id || '') + '</td>' + '<td class="remove-column">' + removeHtml + '</td>' + '<td style="white-space: nowrap;">' + linksHtml + '</td>';
-          tbody.appendChild(tr);
-        });
-        const totalValue = list.reduce((s, x) => s + ((Number(x.stackValue) || 0)), 0);
-        const totalQty = list.reduce((s, x) => s + (Number(x.qty) || 0), 0);
-        stats.textContent = 'Items shown: ' + list.length + ' | Total qty: ' + formatNumberWithCommas(totalQty) + ' | Est total value: ' + formatNumberWithCommas(totalValue);
-      }
+  function populateTypeFilter() {
+    const typeSelect = document.getElementById('filter-type');
+    const types = [...new Set(window.data.map(item => item.type).filter(Boolean))].sort();
+    while (typeSelect.options.length > 1) typeSelect.remove(1);
+    types.forEach(type => {
+      const option = document.createElement('option');
+      option.value = type;
+      option.textContent = type;
+      typeSelect.appendChild(option);
+    });
+  }
 
-      function escapeHtml(s) {
-        return s ? s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;') : '';
-      }
-      document.getElementById('show-nc').addEventListener('change', render);
-      document.getElementById('min-rarity').addEventListener('input', render);
-      document.getElementById('max-rarity').addEventListener('input', render);
-      document.getElementById('search-text').addEventListener('input', render);
-      document.getElementById('sort-by').addEventListener('change', render);
-      document.getElementById('sort-order').addEventListener('click', () => {
-        sortAscending = !sortAscending;
-        document.getElementById('sort-order').textContent = sortAscending ? '⬆️' : '⬇️';
-        render();
-      });
-      document.getElementById('filter-type').addEventListener('change', render);
-      document.getElementById('download-csv').addEventListener('click', () => {
-        const csv = toCSV(data);
-        downloadBlob(csv, 'sdb_export.csv', 'text/csv;charset=utf-8;');
-      });
-      document.getElementById('download-html').addEventListener('click', () => {
-        const html = document.documentElement.outerHTML;
-        downloadBlob(html, 'sdb_export.html', 'text/html;charset=utf-8;');
-      });
-      document.getElementById('copy-clip').addEventListener('click', () => {
-        navigator.clipboard.writeText(toCSV(data)).then(() => alert('CSV copied to clipboard'));
-      });
+  function formatNumberWithCommas(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
 
-      function toCSV(list) {
-        const showNC = document.getElementById('show-nc').checked;
-        const minR = parseInt(document.getElementById('min-rarity').value) || -Infinity;
-        const maxR = parseInt(document.getElementById('max-rarity').value) || Infinity;
-        const searchTerm = currentSearchTerm;
-        const filterType = document.getElementById('filter-type').value;
-        let filteredList = list.filter(d => showNC || !d.isNC).filter(d => (d.rarity === null) ? true : (d.rarity >= minR)).filter(d => (d.rarity === null) ? true : (d.rarity <= maxR)).filter(d => d.name && d.name.toLowerCase().includes(searchTerm)).filter(d => !filterType || d.type === filterType);
-        filteredList.forEach(it => {
-          it.stackValue = (it.qty || 0) * (Number(it.value) || 0);
-        });
-        if (currentSortBy === 'name') {
-          filteredList.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-        } else if (currentSortBy === 'qty') {
-          filteredList.sort((a, b) => (b.qty || 0) - (a.qty || 0));
-        } else if (currentSortBy === 'value') {
-          filteredList.sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
-        } else if (currentSortBy === 'stackValue') {
-          filteredList.sort((a, b) => (Number(b.stackValue) || 0) - (Number(a.stackValue) || 0));
-        } else if (currentSortBy === 'rarity') {
-          filteredList.sort((a, b) => (Number(b.rarity) || 0) - (Number(a.rarity) || 0));
-        } else if (currentSortBy === 'id') {
-          filteredList.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
-        }
-        if (sortAscending) {
-          filteredList.reverse();
-        }
-        const header = ['name', 'type', 'qty', 'rarity', 'value', 'stackValue', 'id'];
-        const rows = [header.join(',')];
-        filteredList.forEach(it => {
-          const r = ['"' + (it.name || '').replace(/"/g, '""') + '"', '"' + (it.type || '').replace(/"/g, '""') + '"',
-            (it.qty || 0),
-            (it.rarity === null ? '' : it.rarity),
-            (it.value === null ? '' : it.value),
-            ((it.qty || 0) * (Number(it.value) || 0)),
-            (it.id || '')
-          ];
-          rows.push(r.join(','));
-        });
-        return rows.join('\n');
-      }
+  window.render = function() {
+    const showNC = document.getElementById('show-nc').checked;
+    const minR = parseInt(document.getElementById('min-rarity').value) || -Infinity;
+    const maxR = parseInt(document.getElementById('max-rarity').value) || Infinity;
+    const searchTerm = document.getElementById('search-text').value.toLowerCase();
+    const filterType = document.getElementById('filter-type').value;
+    currentSearchTerm = searchTerm;
+    currentSortBy = document.getElementById('sort-by').value;
 
-      function downloadBlob(content, filename, mime) {
-        const blob = new Blob([content], {
-          type: mime
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      }
-      populateTypeFilter();
-      render();
-    </script>
+    let list = window.data
+      .filter(d => showNC || !d.isNC)
+      .filter(d => (d.rarity === null) ? true : (d.rarity >= minR))
+      .filter(d => (d.rarity === null) ? true : (d.rarity <= maxR))
+      .filter(d => d.name && d.name.toLowerCase().includes(searchTerm))
+      .filter(d => !filterType || d.type === filterType);
+
+    list.forEach(it => {
+      it.stackValue = (!it.isNC && it.value) ? (it.qty || 0) * Number(it.value) : 0;
+    });
+
+    if (currentSortBy === 'name') list.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+    else if (currentSortBy === 'qty') list.sort((a,b) => (b.qty||0)-(a.qty||0));
+    else if (currentSortBy === 'value') list.sort((a,b) => (Number(b.value)||0)-(Number(a.value)||0));
+    else if (currentSortBy === 'stackValue') list.sort((a,b) => (Number(b.stackValue)||0)-(Number(a.stackValue)||0));
+    else if (currentSortBy === 'rarity') list.sort((a,b) => (Number(b.rarity)||0)-(Number(a.rarity)||0));
+    else if (currentSortBy === 'id') list.sort((a,b) => (Number(a.id)||0)-(Number(b.id)||0));
+
+    if (sortAscending) list.reverse();
+
+    tbody.innerHTML = '';
+    list.forEach(it => {
+      const tr = document.createElement('tr');
+      const itemNameForItemDB = encodeURIComponent(it.name || '').toLowerCase().replace(/%20/g,'-').replace(/%[0-9A-F]{2}/g,'');
+      const itemNameForJellyNeo = encodeURIComponent(it.name || '').replace(/%20/g,'+');
+      const itemNameForSDB = encodeURIComponent(it.name || '').replace(/%20/g,'+');
+
+      const removeHtml = `
+        <div style="display:flex;align-items:center;justify-content:center;">
+          <input type="number" class="quantity-input" data-item-id="${it.id}" value="1" min="1" max="${it.qty||0}" style="margin-right:5px;">
+          <button class="remove-btn" onclick="removeItems(${it.id}, this.previousElementSibling.value)">–</button>
+        </div>`;
+
+      const linksHtml = `
+        <a href="https://itemdb.com.br/item/${itemNameForItemDB}" target="_blank" title="View on ItemDB">
+          <img src="https://i.imgur.com/vgp1HHw.png" alt="ItemDB" class="link-icon">
+        </a>
+        <a href="https://items.jellyneo.net/search/?name=${itemNameForJellyNeo}&name_type=3" target="_blank" title="Search on Jellyneo">
+          <img src="https://i.imgur.com/TrJp26O.png" alt="Jellyneo" class="link-icon">
+        </a>
+        <a href="https://www.neopets.com/safetydeposit.phtml?obj_name=${itemNameForSDB}&category=0" target="_blank" title="Search in SDB">
+          <img src="https://i.imgur.com/8X7djHT.png" alt="SDB" class="link-icon">
+        </a>`;
+
+      tr.innerHTML = `
+        <td>${it.image ? '<img src="'+escapeHtml(it.image)+'"/>' : ''}</td>
+        <td>${escapeHtml(it.name||'')}</td>
+        <td>${escapeHtml(it.type||'')}</td>
+        <td>${formatNumberWithCommas(it.qty||0)}</td>
+        <td>${it.rarity!=null?escapeHtml(it.rarity.toString()):'-'}</td>
+        <td>${it.value!=null?formatNumberWithCommas(it.value):'-'}</td>
+        <td>${it.stackValue!=null?formatNumberWithCommas(it.stackValue):'-'}</td>
+        <td>${it.id||''}</td>
+        <td class="remove-column">${removeHtml}</td>
+        <td style="white-space: nowrap;">${linksHtml}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    const totalValue = list.reduce((s,x) => s+(Number(x.stackValue)||0), 0);
+    const totalQty = list.reduce((s,x) => s+(Number(x.qty)||0), 0);
+    stats.textContent = `Items shown: ${list.length} | Total qty: ${formatNumberWithCommas(totalQty)} | Est total value: ${formatNumberWithCommas(totalValue)}`;
+  };
+
+  function escapeHtml(s) {
+    return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;') : '';
+  }
+   function toCSV(list) {
+    const showNC = document.getElementById('show-nc').checked;
+    const minR = parseInt(document.getElementById('min-rarity').value) || -Infinity;
+    const maxR = parseInt(document.getElementById('max-rarity').value) || Infinity;
+    const searchTerm = currentSearchTerm;
+    const filterType = document.getElementById('filter-type').value;
+    
+    let filteredList = window.data
+      .filter(d => showNC || !d.isNC)
+      .filter(d => (d.rarity === null) ? true : (d.rarity >= minR))
+      .filter(d => (d.rarity === null) ? true : (d.rarity <= maxR))
+      .filter(d => d.name && d.name.toLowerCase().includes(searchTerm))
+      .filter(d => !filterType || d.type === filterType);
+
+    filteredList.forEach(it => {
+        it.stackValue = (it.qty || 0) * (Number(it.value) || 0);
+    });
+
+    if (currentSortBy === 'name') filteredList.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+    else if (currentSortBy === 'qty') filteredList.sort((a,b) => (b.qty||0)-(a.qty||0));
+    else if (currentSortBy === 'value') filteredList.sort((a,b) => (Number(b.value)||0)-(Number(a.value)||0));
+    else if (currentSortBy === 'stackValue') filteredList.sort((a,b) => (Number(b.stackValue)||0)-(Number(a.stackValue)||0));
+    else if (currentSortBy === 'rarity') filteredList.sort((a,b) => (Number(b.rarity)||0)-(Number(a.rarity)||0));
+    else if (currentSortBy === 'id') filteredList.sort((a,b) => (Number(a.id)||0)-(Number(b.id)||0));
+
+    if (sortAscending) filteredList.reverse();
+
+    const header = ['name','type','qty','rarity','value','stackValue','id'];
+    const rows = [header.join(',')];
+    filteredList.forEach(it => {
+        const r = [
+            '"' + (it.name||'').replace(/"/g,'""') + '"',
+            '"' + (it.type||'').replace(/"/g,'""') + '"',
+            (it.qty||0),
+            (it.rarity===null?'':it.rarity),
+            (it.value===null?'':it.value),
+            ((it.qty||0)*(Number(it.value)||0)),
+            (it.id||'')
+        ];
+        rows.push(r.join(','));
+    });
+    return rows.join('\n');
+  }
+
+  function downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById('show-nc').addEventListener('change', window.render);
+  document.getElementById('min-rarity').addEventListener('input', window.render);
+  document.getElementById('max-rarity').addEventListener('input', window.render);
+  document.getElementById('search-text').addEventListener('input', window.render);
+  document.getElementById('sort-by').addEventListener('change', window.render);
+  document.getElementById('sort-order').addEventListener('click', () => {
+    sortAscending = !sortAscending;
+    document.getElementById('sort-order').textContent = sortAscending ? '⬆️' : '⬇️';
+    window.render();
+  });
+  document.getElementById('filter-type').addEventListener('change', window.render);
+  document.getElementById('download-csv').addEventListener('click', () => {
+    const csv = toCSV(window.data);
+    downloadBlob(csv, 'sdb_export.csv', 'text/csv;charset=utf-8;');
+  });
+  document.getElementById('download-html').addEventListener('click', () => {
+    const html = document.documentElement.outerHTML;
+    downloadBlob(html, 'sdb_export.html', 'text/html;charset=utf-8;');
+  });
+  document.getElementById('copy-clip').addEventListener('click', () => {
+    navigator.clipboard.writeText(toCSV(window.data)).then(() => alert('CSV copied to clipboard'));
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    populateTypeFilter();
+    if (window.data && window.render) window.render();
+  });
+</script>
+
   </body>
 </html>
