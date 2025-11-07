@@ -278,6 +278,13 @@
       .search-container {
         margin: 10px 0;
       }
+      #sdb-table td:nth-child(10) {
+      font-size: 0;
+      }
+
+     #sdb-table td:nth-child(10) a {
+     font-size: 14px;
+     }
 
       .dark-mode-toggle {
         position: absolute;
@@ -299,42 +306,81 @@
     </style>
   </head>
   <body><button class="dark-mode-toggle" id="dark-mode-toggle">🌙</button>
-    <div class="container">
-      <h2>SDB Report</h2>
-      <div class="controls"><button id="download-csv">Download CSV</button><button id="download-html">Download HTML Source</button><button id="copy-clip">Copy CSV to Clipboard</button>
-        <div style="margin-top: 10px;"><label> Show NC items <input type="checkbox" id="show-nc" checked /></label><label> Min rarity <input type="number" id="min-rarity" style="width:70px" /></label><label> Max rarity <input type="number" id="max-rarity" style="width:70px" /></label><label> Sort by: <select id="sort-by">
-              <option value="value">Value</option>
-              <option value="name">Name</option>
-              <option value="qty">Qty</option>
-              <option value="stackValue">Stack value</option>
-              <option value="rarity">Rarity</option>
-              <option value="id">Item id</option>
-            </select><span id="sort-order" class="sort-order" title="Toggle sort order">⬇️</span></label></div>
-        <div class="search-container"><label>Search: <input type="text" id="search-text" placeholder="Type to filter items..." style="width: 250px;" /></label></div><label> Filter by type: <select id="filter-type" style="width: 120px;">
-            <option value="">All types</option>
-          </select></label>
-      </div>
-      <div style="font-size: 12px; color: var(--text-secondary); margin-top: 10px; text-align: center;"> Item data from <a href="https://itemdb.com.br" target="_blank" style="color: var(--text-secondary);">ItemDB</a> • NC values from <a href="https://stylisher.club/" target="_blank" style="color: var(--text-secondary);">Lebron Values</a></div>
-      <div id="stats" class="stats"></div>
-      <div class="table-container">
-        <table id="sdb-table">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Qty</th>
-              <th>Rarity</th>
-              <th>Value</th>
-              <th>Stack Value</th>
-              <th>ItemID</th>
-              <th>Remove</th>
-              <th>Links</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+<div class="container">
+  <h2>SDB Report</h2>
+
+<div class="controls">
+
+  <div style="margin-bottom: 10px;">
+    <button id="download-html">Download HTML Source</button>
+    <button id="download-csv">Download CSV</button>
+    <button id="copy-clip">Copy CSV to Clipboard</button>
+  </div>
+
+  <div style="margin-bottom: 10px;">
+    <label>Min value <input type="number" id="min-value" style="width:80px" /></label>
+    <label>Max value <input type="number" id="max-value" style="width:80px" /></label>
+    <label>Min rarity <input type="number" id="min-rarity" style="width:70px" /></label>
+    <label>Max rarity <input type="number" id="max-rarity" style="width:70px" /></label>
+  </div>
+
+  <div style="margin-bottom: 10px;">
+    <label>Search: <input type="text" id="search-text" placeholder="Type to filter items..." style="width: 250px;" /></label>
+    <label style="margin-left: 20px;">Sort by: 
+      <select id="sort-by">
+        <option value="value">Value</option>
+        <option value="name">Name</option>
+        <option value="qty">Qty</option>
+        <option value="stackValue">Stack value</option>
+        <option value="rarity">Rarity</option>
+        <option value="id">Item id</option>
+      </select>
+      <span id="sort-order" class="sort-order" title="Toggle sort order">⬇️</span>
+    </label>
+  </div>
+
+  <div style="margin-top: 10px;">
+    <label>Filter by type: 
+      <select id="filter-type" style="width: 120px;">
+        <option value="">All types</option>
+      </select>
+    </label>
+
+    <label style="margin-left: 20px;">Show NC items 
+      <input type="checkbox" id="show-nc" checked />
+    </label>
+  </div>
+
+</div>
+
+  <div id="stats" class="stats"></div>
+
+  <div class="table-container">
+    <table id="sdb-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Qty</th>
+          <th>Rarity</th>
+          <th>Value</th>
+          <th>Stack Value</th>
+          <th>ItemID</th>
+          <th>Remove</th>
+          <th>Links</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</div>
+
+<div style="font-size: 12px; color: var(--text-secondary); margin-top: 10px; text-align: center;"> Item data from <a href="https://itemdb.com.br" target="_blank" style="color: var(--text-secondary);">ItemDB</a> • NC values from <a href="https://stylisher.club/" target="_blank" style="color: var(--text-secondary);">Lebron Values</a></div>
+  </div>
+</div>
+
     </div>
 <script>
   function removeItems(itemId, quantity) {
@@ -457,17 +503,21 @@ window.data = {{SDB_DATA}};
     const showNC = document.getElementById('show-nc').checked;
     const minR = parseInt(document.getElementById('min-rarity').value) || -Infinity;
     const maxR = parseInt(document.getElementById('max-rarity').value) || Infinity;
+    const minValue = parseInt(document.getElementById('min-value').value) || -Infinity;
+    const maxValue = parseInt(document.getElementById('max-value').value) || Infinity;
     const searchTerm = document.getElementById('search-text').value.toLowerCase();
     const filterType = document.getElementById('filter-type').value;
-    currentSearchTerm = searchTerm;
-    currentSortBy = document.getElementById('sort-by').value;
 
-    let list = window.data
-      .filter(d => showNC || !d.isNC)
-      .filter(d => (d.rarity === null) ? true : (d.rarity >= minR))
-      .filter(d => (d.rarity === null) ? true : (d.rarity <= maxR))
-      .filter(d => d.name && d.name.toLowerCase().includes(searchTerm))
-      .filter(d => !filterType || d.type === filterType);
+  let list = window.data
+    .filter(d => showNC || !d.isNC)
+    .filter(d => (d.rarity === null) ? true : (d.rarity >= minR))
+    .filter(d => (d.rarity === null) ? true : (d.rarity <= maxR))
+    .filter(d => {
+      const value = Number(d.value) || 0;
+      return value >= minValue && value <= maxValue;
+    })
+    .filter(d => d.name && d.name.toLowerCase().includes(searchTerm))
+    .filter(d => !filterType || d.type === filterType);
 
     list.forEach(it => {
       it.stackValue = (!it.isNC && it.value) ? (it.qty || 0) * Number(it.value) : 0;
@@ -495,16 +545,7 @@ window.data = {{SDB_DATA}};
           <button class="remove-btn" onclick="removeItems(${it.id}, this.previousElementSibling.value)">–</button>
         </div>`;
 
-      const linksHtml = `
-        <a href="https://itemdb.com.br/item/${itemNameForItemDB}" target="_blank" title="View on ItemDB">
-          <img src="https://i.imgur.com/vgp1HHw.png" alt="ItemDB" class="link-icon">
-        </a>
-        <a href="https://items.jellyneo.net/search/?name=${itemNameForJellyNeo}&name_type=3" target="_blank" title="Search on Jellyneo">
-          <img src="https://i.imgur.com/TrJp26O.png" alt="Jellyneo" class="link-icon">
-        </a>
-        <a href="https://www.neopets.com/safetydeposit.phtml?obj_name=${itemNameForSDB}&category=0" target="_blank" title="Search in SDB">
-          <img src="https://i.imgur.com/8X7djHT.png" alt="SDB" class="link-icon">
-        </a>`;
+const linksHtml = `<a href="https://itemdb.com.br/item/${itemNameForItemDB}" target="_blank" title="View on ItemDB"><img src="https://i.imgur.com/vgp1HHw.png" alt="ItemDB" class="link-icon"></a><a href="https://items.jellyneo.net/search/?name=${itemNameForJellyNeo}&name_type=3" target="_blank" title="Search on Jellyneo"><img src="https://i.imgur.com/TrJp26O.png" alt="Jellyneo" class="link-icon"></a><a href="https://www.neopets.com/safetydeposit.phtml?obj_name=${itemNameForSDB}&category=0" target="_blank" title="Search in SDB"><img src="https://i.imgur.com/8X7djHT.png" alt="SDB" class="link-icon"></a>`;
 
       tr.innerHTML = `
         <td>${it.image ? '<img src="'+escapeHtml(it.image)+'"/>' : ''}</td>
@@ -532,6 +573,8 @@ window.data = {{SDB_DATA}};
     const showNC = document.getElementById('show-nc').checked;
     const minR = parseInt(document.getElementById('min-rarity').value) || -Infinity;
     const maxR = parseInt(document.getElementById('max-rarity').value) || Infinity;
+    const minValue = parseInt(document.getElementById('min-value').value) || -Infinity;
+    const maxValue = parseInt(document.getElementById('max-value').value) || Infinity;
     const searchTerm = currentSearchTerm;
     const filterType = document.getElementById('filter-type').value;
     
@@ -539,10 +582,14 @@ window.data = {{SDB_DATA}};
       .filter(d => showNC || !d.isNC)
       .filter(d => (d.rarity === null) ? true : (d.rarity >= minR))
       .filter(d => (d.rarity === null) ? true : (d.rarity <= maxR))
+      .filter(d => {
+      const value = Number(d.value) || 0;
+      return value >= minValue && value <= maxValue;
+       })
       .filter(d => d.name && d.name.toLowerCase().includes(searchTerm))
       .filter(d => !filterType || d.type === filterType);
 
-    filteredList.forEach(it => {
+      filteredList.forEach(it => {
         it.stackValue = (it.qty || 0) * (Number(it.value) || 0);
     });
 
@@ -589,6 +636,8 @@ window.data = {{SDB_DATA}};
   document.getElementById('max-rarity').addEventListener('input', window.render);
   document.getElementById('search-text').addEventListener('input', window.render);
   document.getElementById('sort-by').addEventListener('change', window.render);
+  document.getElementById('min-value').addEventListener('input', window.render);
+  document.getElementById('max-value').addEventListener('input', window.render);
   document.getElementById('sort-order').addEventListener('click', () => {
     sortAscending = !sortAscending;
     document.getElementById('sort-order').textContent = sortAscending ? '⬆️' : '⬇️';
