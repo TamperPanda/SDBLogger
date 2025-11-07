@@ -523,13 +523,16 @@ window.data = {{SDB_DATA}};
       it.stackValue = (!it.isNC && it.value) ? (it.qty || 0) * Number(it.value) : 0;
     });
 
-    if (currentSortBy === 'name') list.sort((a,b) => (a.name||'').localeCompare(b.name||''));
-    else if (currentSortBy === 'qty') list.sort((a,b) => (b.qty||0)-(a.qty||0));
-    else if (currentSortBy === 'value') list.sort((a,b) => (Number(b.value)||0)-(Number(a.value)||0));
-    else if (currentSortBy === 'stackValue') list.sort((a,b) => (Number(b.stackValue)||0)-(Number(a.stackValue)||0));
-    else if (currentSortBy === 'rarity') list.sort((a,b) => (Number(b.rarity)||0)-(Number(a.rarity)||0));
-    else if (currentSortBy === 'id') list.sort((a,b) => (Number(a.id)||0)-(Number(b.id)||0));
+   list.forEach(it => {
+  it.stackValue = (!it.isNC && it.value) ? (it.qty || 0) * Number(it.value) : 0;
+});
 
+if (currentSortBy === 'name') list.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+else if (currentSortBy === 'qty') list.sort((a,b) => (b.qty||0)-(a.qty||0));
+else if (currentSortBy === 'value') list.sort((a,b) => (Number(b.value)||0)-(Number(a.value)||0));
+else if (currentSortBy === 'stackValue') list.sort((a,b) => (Number(b.stackValue)||0)-(Number(a.stackValue)||0));
+else if (currentSortBy === 'rarity') list.sort((a,b) => (Number(b.rarity)||0)-(Number(a.rarity)||0));
+else if (currentSortBy === 'id') list.sort((a,b) => (Number(a.id)||0)-(Number(b.id)||0));
     if (sortAscending) list.reverse();
 
     tbody.innerHTML = '';
