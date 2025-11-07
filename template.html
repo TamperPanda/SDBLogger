@@ -500,6 +500,7 @@ window.data = {{SDB_DATA}};
   }
 
   window.render = function() {
+    currentSortBy = document.getElementById('sort-by').value;
     const showNC = document.getElementById('show-nc').checked;
     const minR = parseInt(document.getElementById('min-rarity').value) || -Infinity;
     const maxR = parseInt(document.getElementById('max-rarity').value) || Infinity;
