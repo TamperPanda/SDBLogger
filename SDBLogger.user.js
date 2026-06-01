@@ -2,7 +2,7 @@
 // @name         Neopets SDB Logger
 // @version      1.5
 // @author       TamperPanda
-// @description  SDB Logger & Exporter (token auto‑retrieve)
+// @description  SDB Logger & Exporter
 // @match        https://www.neopets.com/safetydeposit.phtml*
 // @icon         https://cdn9.neopets.com/app_icons/816098ae647bce91fb4ba4590b0f3e6b.png
 // @grant        GM_setValue
