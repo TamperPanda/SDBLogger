@@ -436,6 +436,8 @@ function createRow(it) {
   if (it.image) {
     const img = document.createElement('img');
     img.src = it.image;
+    img.loading = 'lazy';
+    img.decoding = 'async';
     td1.appendChild(img);
   }
   tr.appendChild(td1);
@@ -498,13 +500,13 @@ function createRow(it) {
   td10.style.cssText = 'white-space: nowrap;';
   td10.innerHTML = 
     '<a href="https://itemdb.com.br/item/' + links.itemDB + '" target="_blank" title="View on ItemDB">' +
-      '<img src="https://i.imgur.com/vgp1HHw.png" alt="ItemDB" class="link-icon">' +
+      '<img src="https://i.imgur.com/vgp1HHw.png" alt="ItemDB" class="link-icon" loading="lazy" decoding="async">' +
     '</a>' +
     '<a href="https://items.jellyneo.net/search/?name=' + links.jellyNeo + '&name_type=3" target="_blank" title="Search on Jellyneo">' +
-      '<img src="https://i.imgur.com/TrJp26O.png" alt="Jellyneo" class="link-icon">' +
+      '<img src="https://i.imgur.com/TrJp26O.png" alt="Jellyneo" class="link-icon" loading="lazy" decoding="async">' +
     '</a>' +
     '<a href="https://www.neopets.com/safetydeposit.phtml?obj_name=' + links.sdb + '&category=0" target="_blank" title="Search in SDB">' +
-      '<img src="https://i.imgur.com/8X7djHT.png" alt="SDB" class="link-icon">' +
+      '<img src="https://i.imgur.com/8X7djHT.png" alt="SDB" class="link-icon" loading="lazy" decoding="async">' +
     '</a>';
   tr.appendChild(td10);
   
