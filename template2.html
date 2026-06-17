@@ -5,59 +5,6 @@
 <title>SDB Export - Consolidated</title>
 <style>
 :root {
-  --bg-primary: #f6fbff;
-  --bg-secondary: white;
-  --bg-tertiary: #f8f9fa;
-  --text-primary: #333;
-  --text-secondary: #3a6ea5;
-  --border-color: #ddd;
-  --table-header-bg: #3a6ea5;
-  --table-header-text: white;
-  --table-row-even: #f8f9fa;
-  --table-row-odd: #ffffff;
-  --table-row-hover: #e9ecef;
-  --stats-bg: #e8f4fc;
-  --stats-border: #3a6ea5;
-  --button-bg: #3a6ea5;
-  --button-hover: #2c5282;
-  --input-bg: white;
-  --input-border: #ccc;
-  --input-text: #333;
-}
-.table-container {
-  will-change: scroll-position;
-  -webkit-overflow-scrolling: touch;
-}
-#sdb-table {
-  transform: translateZ(0);
-}
-.rendering * {
-  transition: none !important;
-}
-.remove-btn {
-  height: 28px !important;
-  padding: 4px 12px !important;
-  font-size: 12px !important;
-  line-height: 1 !important;
-}
-.remove-column>div {
-  display: flex !important;
-  align-items: center !important;
-  gap: 5px !important;
-}
-.remove-column .quantity-input {
-  -moz-appearance: textfield;
-  width: 40px !important;
-  min-width: 40px !important;
-  max-width: 40px !important;
-}
-.container h2 {
-  box-sizing: border-box !important;
-}
-.remove-column {
-  min-width: 60px !important;
-}
-.dark-mode {
   --bg-primary: #121212;
   --bg-secondary: #1e1e1e;
   --bg-tertiary: #2d2d2d;
@@ -79,23 +26,54 @@
   scrollbar-color: #555555 #2d2d2d;
   scrollbar-width: thin;
 }
-.dark-mode .remove-btn {
+.table-container {
+  will-change: scroll-position;
+  -webkit-overflow-scrolling: touch;
+}
+#sdb-table {
+  transform: translateZ(0);
+}
+.rendering * {
+  transition: none !important;
+}
+.remove-btn {
+  height: 28px !important;
+  padding: 4px 12px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
   background: rgba(139, 0, 0, 0.3) !important;
   border: 1px solid rgba(139, 0, 0, 0.5) !important;
 }
-.dark-mode ::-webkit-scrollbar {
+.remove-column>div {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+.remove-column .quantity-input {
+  -moz-appearance: textfield;
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+}
+.container h2 {
+  box-sizing: border-box !important;
+}
+.remove-column {
+  min-width: 60px !important;
+}
+::-webkit-scrollbar {
   width: 12px;
 }
-.dark-mode ::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
   background: #2d2d2d;
   border-radius: 6px;
 }
-.dark-mode ::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   background: #555555;
   border-radius: 6px;
   border: 2px solid #2d2d2d;
 }
-.dark-mode ::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
   background: #666666;
 }
 body {
@@ -254,25 +232,9 @@ label {
 #sdb-table td:nth-child(10) a {
   font-size: 14px;
 }
-.dark-mode-toggle {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: var(--button-bg);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  z-index: 1000;
-}
-.dark-mode-toggle:hover {
-  background: var(--button-hover);
-}
 </style>
 </head>
-<body><button class="dark-mode-toggle" id="dark-mode-toggle">🌙</button>
+<body>
 <div class="container">
 <h2>SDB Report</h2>
 <div class="controls">
@@ -334,7 +296,7 @@ label {
 Item data from <a href="https://itemdb.com.br" target="_blank" style="color: var(--text-secondary);">ItemDB</a> • NC values from <a href="https://stylisher.club/" target="_blank" style="color: var(--text-secondary);">Lebron Values</a></div>
 </div>
 </div>
-</div>
+<script id="sdb-data" type="application/json">{{SDB_DATA}}</script>
 <script>
 function debounce(func, wait) {
   let timeout;
@@ -556,32 +518,7 @@ window.addEventListener('message', function(event) {
   if (event.data.type === 'itemRemoved') {}
 });
 
-const darkModeToggle = document.getElementById('dark-mode-toggle');
-const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-const savedTheme = localStorage.getItem('sdb-theme');
-const currentTheme = savedTheme || (prefersDarkScheme.matches ? 'dark' : 'light');
-if (currentTheme === 'dark') {
-  document.body.classList.add('dark-mode');
-  darkModeToggle.textContent = '☀️';
-}
-darkModeToggle.addEventListener('click', () => {
-  const isDarkMode = document.body.classList.toggle('dark-mode');
-  localStorage.setItem('sdb-theme', isDarkMode ? 'dark' : 'light');
-  darkModeToggle.textContent = isDarkMode ? '☀️' : '🌙';
-});
-prefersDarkScheme.addEventListener('change', e => {
-  if (!localStorage.getItem('sdb-theme')) {
-    if (e.matches) {
-      document.body.classList.add('dark-mode');
-      darkModeToggle.textContent = '☀️';
-    } else {
-      document.body.classList.remove('dark-mode');
-      darkModeToggle.textContent = '🌙';
-    }
-  }
-});
-
-window.data = {{SDB_DATA}};
+window.data = JSON.parse(document.getElementById('sdb-data').textContent);
 const $ = sel => document.querySelector(sel);
 const tbody = document.querySelector('#sdb-table tbody');
 const stats = document.getElementById('stats');
