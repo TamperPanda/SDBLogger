@@ -163,14 +163,6 @@ img {
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
-.link-icon {
-  width: 30px;
-  height: 30px;
-  margin: 0 2px;
-  vertical-align: middle;
-  border: 1px solid var(--border-color);
-  border-radius: 3px;
-}
 .controls {
   margin-bottom: 20px;
   padding: 15px;
@@ -226,12 +218,6 @@ label {
 .search-container {
   margin: 10px 0;
 }
-#sdb-table td:nth-child(10) {
-  font-size: 0;
-}
-#sdb-table td:nth-child(10) a {
-  font-size: 14px;
-}
 </style>
 </head>
 <body>
@@ -285,7 +271,6 @@ label {
 <th>Stack Value</th>
 <th>ItemID</th>
 <th>Remove</th>
-<th>Links</th>
 </tr>
 </thead>
 <tbody></tbody>
@@ -379,20 +364,8 @@ function formatNumberWithCommas(num) {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-function getItemLinks(itemName) {
-  const itemNameForItemDB = encodeURIComponent(itemName || '').toLowerCase().replace(/%20/g,'-').replace(/%[0-9A-F]{2}/g,'');
-  const itemNameForJellyNeo = encodeURIComponent(itemName || '').replace(/%20/g,'+');
-  const itemNameForSDB = encodeURIComponent(itemName || '').replace(/%20/g,'+');
-  return {
-    itemDB: itemNameForItemDB,
-    jellyNeo: itemNameForJellyNeo,
-    sdb: itemNameForSDB
-  };
-}
-
 function createRow(it) {
   const tr = document.createElement('tr');
-  const links = getItemLinks(it.name);
   
   const td1 = document.createElement('td');
   if (it.image) {
@@ -457,20 +430,6 @@ function createRow(it) {
   removeDiv.appendChild(removeBtn);
   td9.appendChild(removeDiv);
   tr.appendChild(td9);
-  
-  const td10 = document.createElement('td');
-  td10.style.cssText = 'white-space: nowrap;';
-  td10.innerHTML = 
-    '<a href="https://itemdb.com.br/item/' + links.itemDB + '" target="_blank" title="View on ItemDB">' +
-      '<img src="https://i.imgur.com/vgp1HHw.png" alt="ItemDB" class="link-icon" loading="lazy" decoding="async">' +
-    '</a>' +
-    '<a href="https://items.jellyneo.net/search/?name=' + links.jellyNeo + '&name_type=3" target="_blank" title="Search on Jellyneo">' +
-      '<img src="https://i.imgur.com/TrJp26O.png" alt="Jellyneo" class="link-icon" loading="lazy" decoding="async">' +
-    '</a>' +
-    '<a href="https://www.neopets.com/safetydeposit.phtml?obj_name=' + links.sdb + '&category=0" target="_blank" title="Search in SDB">' +
-      '<img src="https://i.imgur.com/8X7djHT.png" alt="SDB" class="link-icon" loading="lazy" decoding="async">' +
-    '</a>';
-  tr.appendChild(td10);
   
   return tr;
 }
